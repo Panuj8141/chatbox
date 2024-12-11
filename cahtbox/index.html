@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbox</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #chatbox {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 350px;
+            max-width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #message-container {
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .sent {
+            background-color: #e1f5e1;
+            text-align: right;
+        }
+        .unsent {
+            background-color: #fbe3e4;
+            text-align: left;
+        }
+        .read {
+            background-color: #d3f4e6;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox">
+        <div id="message-container"></div> <!-- Displaying chat messages -->
+        <input type="text" id="user-message" placeholder="Type a message" />
+        <button id="send-button" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // Function to display messages
+        function displayMessages(messages) {
+            const messageContainer = document.getElementById('message-container');
+            messageContainer.innerHTML = ''; // Clear existing messages
+            messages.forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.classList.add(msg.status);
+                messageElement.textContent = `${msg.status.toUpperCase()}: ${msg.message}`;
+                messageContainer.appendChild(messageElement);
+            });
+        }
+
+        // Function to send message (connects to backend API)
+        function sendMessage() {
+            const userMessage = document.getElementById('user-message').value.trim();
+
+            if (userMessage === '') {
+                return;
+            }
+
+            // Acknowledge the message as "unsent" first
+            displayMessages([{ message: userMessage, status: 'unsent' }]);
+
+            // Send message to backend API
+            fetch('/api/sendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Simulate the message status changes: sent -> read
+                displayMessages(data.messages);
+            });
+
+            // Clear the input field
+            document.getElementById('user-message').value = '';
+        }
+
+        // Automatically focus on the input field when the page loads
+        document.getElementById('user-message').focus();
+    </script>
+</body>
+</html>
